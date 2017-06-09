@@ -12,9 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+import os.path as osp
+
+
 def to_bytes(bytes_or_str):
     if isinstance(bytes_or_str, str):
         value = bytes_or_str.encode('utf-8')
     else:
         value = bytes_or_str
     return value
+
+
+def fastx_stem(path):
+    m = re.match('(.+)(?:\.fast[aq]|\.fna)(?:\.gz)?$', osp.basename(path))
+    if m is None:
+        raise ValueError(
+            'Path {} does not look like a fast[aq] file'.format(path))
+    return m.group(1)
