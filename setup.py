@@ -29,5 +29,7 @@ setup(
     author_email='uri@lasersonlab.org',
     url='https://github.com/lasersonlab/llutil',
     packages=find_packages(),
+    install_requires=['click'],
+    entry_points={'console_scripts': ['llutil = llutil.cli:cli']},
     license='Apache License, Version 2.0',
     classifiers=['Programming Language :: Python :: 3'])
