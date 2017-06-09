@@ -17,6 +17,7 @@ import random
 from Bio.Seq import Seq
 from Bio.Alphabet.IUPAC import unambiguous_dna
 
+
 def oligo_gen(seq, min_len, max_len):
     """Generate all possible oligos from seq with length constraints
 
@@ -27,6 +28,33 @@ def oligo_gen(seq, min_len, max_len):
             oligo = seq[i:i + j]
             if len(oligo) == j:
                 yield oligo
+
+
+def dna_mutation_gen(seq):
+    """Generate all possible point mutations from DNA seq
+    
+    seq is Bio.Seq.Seq
+    
+    Does not respect case of letters
+    """
+    letters = seq.alphabet.letters
+    for i in range(len(seq)):
+        for letter in letters:
+            if letter != seq[i].upper():
+                yield seq[:i] + letter + seq[i + 1:]
+    
+
+def inosine_gen(seq):
+    """Generate all single inosine mutations in seq
+    
+    seq is a Bio.Seq.Seq or str
+    
+    Does not respect alphabets
+    """
+    compat = set('GAT')
+    for i in range(len(seq)):
+        if seq[i].upper() in compat:
+            yield seq[:i] + 'I' + seq[i + 1:]
 
 
 def random_dna_seq(length):
