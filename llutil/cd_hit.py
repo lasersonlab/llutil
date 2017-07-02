@@ -24,7 +24,7 @@ def cd_hit_cli():
 
 @cd_hit_cli.command()
 @option('--representatives', '-r', type=File('r'),
-        help='The .fasta output with the cluster representatives')
+        help='The .fastx output with the cluster representatives')
 @option('--clusters', '-c', type=File('r'),
         help='The .clstr file with the cluster definitions')
 @option('--output', '-o', type=File('w'), help='Output file')
@@ -57,7 +57,9 @@ def collapse(representatives, clusters, output):
     # handle the last line
     cluster_sizes[cluster_rep_id] = cluster_size
     # then pull the associated representative sequences and write out
-    for seq in skbio.io.read(representatives, format='fasta'):
+    format = skbio.io.sniff(representatives)[0]
+    kwargs = {} if format == 'fasta' else {'variant': 'illumina1.8'}
+    for seq in skbio.io.read(representatives, format=format, **kwargs):
         id_ = seq.metadata['id']
         print('{}\t{}\t{}'.format(cluster_sizes[id_], id_, str(seq)),
               file=output)
