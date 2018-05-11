@@ -1,4 +1,4 @@
-# Copyright 2016 Uri Laserson
+# Copyright 2017 Uri Laserson
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,82 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-from collections import namedtuple
+from Bio import pairwise2
+from Bio import SeqIO
 
-from Bio.Seq import Seq
-from Bio.Alphabet.IUPAC import unambiguous_dna
-from Bio.SeqUtils.ProtParam import ProteinAnalysis
-from Bio.SeqUtils import GC
 
-from llutil.unafold import melting_temp, hybrid_min, hybrid_ss_min
+
+ref = 'AGGCCGCCTTTAGCATGGGATCGATTACGTATAGGATTCGATCGATCGATGAGATCGACG'
+s1 = 'CGATGAGATCGA'
+s2 = 'GGGGTATAAAAAATGCATTCGAGAGGCCGCCTTTAGCATGGGATCGATTA'
+
+
+aln1 = pairwise2.align.globalms(ref, s1, 2, -1, -5, -1, penalize_end_gaps=False)[0]
+aln2 = pairwise2.align.globalms(ref, s2, 2, -1, -5, -1, penalize_end_gaps=False)[0]
+
+merge_global_alns(aln1[0], [aln1[1]], aln2[0], [aln2[1]])
+
+
+
+-----------------------AGGCCGCCTTTAGCATGGGATCGATTACGTATAGGATTCGATCGATCGATGAGATCGACG
+---------------------------------------------------------------------CGATGAGATCGA--
+GGGGTATAAAAAATGCATTCGAGAGGCCGCCTTTAGCATGGGATCGATTA---------------------------------
+
+
+
+
+from glob import glob
+
+for ab1_file in glob('*.ab1'):
+    sr = SeqIO.read(ab1_file, 'abi-trim')
+
+
+
+def merge_global_alns(gapped_ref1, gapped_alns1, gapped_ref2, gapped_alns2):
+    """Merge pairwise alignments to the same reference
+
+    gapped_ref1 and gapped_alns1 represent the same underlying reference
+    sequence to which other sequences are aligned to.
+
+    gapped_alns1 and gapped_alns2 are lists of gapped sequences, each one
+    corresponding to an alignment with the respective gapped reference.
+
+    returns merged_ref which is a new gapped version of the reference and
+    merged_alns, which is a list containing all the sequences from gapped_alns1
+    and gapped_alns1. All sequences are now gapped correspondingly.
+    """
+    merge_aln = pairwise2.align.globalxx(gapped_ref1, gapped_ref2)[0]
+    assert merge_aln[0] == merge_aln[1]
+    merged_ref = merge_aln[0]
+    merged_alns1 = []
+    merged_alns2 = []
+    j1 = 0
+    j2 = 0
+    for i in range(len(merged_ref)):
+        if merged_ref[i] == gapped_ref1[j1]:
+            merged_alns1.append([aln[j1] for aln in gapped_alns1])
+            j1 += 1
+        else:
+            merged_alns1.append(['-' for aln in gapped_alns1])
+        if merged_ref[i] == gapped_ref2[j2]:
+            merged_alns2.append([aln[j2] for aln in gapped_alns2])
+            j2 += 1
+        else:
+            merged_alns2.append(['-' for aln in gapped_alns2])
+    merged_alns = [''.join(parts) for parts in zip(*merged_alns1)]
+    merged_alns += [''.join(parts) for parts in zip(*merged_alns2)]
+    return (merged_ref, merged_alns)
+
+
+
+
+
+
+
+
+
+
+
 
 
 def oligo_gen(seq, min_len, max_len):

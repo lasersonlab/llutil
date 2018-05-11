@@ -14,6 +14,7 @@
 
 import re
 import os.path as osp
+from collections import namedtuple
 
 
 def to_bytes(bytes_or_str):
@@ -25,8 +26,21 @@ def to_bytes(bytes_or_str):
 
 
 def fastx_stem(path):
-    m = re.match('(.+)(?:\.fast[aq]|\.fna)(?:\.gz)?$', osp.basename(path))
+    m = re.match('(.+)(?:\.fast[aq]|\.fna|\.f[aq])(?:\.gz)?$', osp.basename(path))
     if m is None:
         raise ValueError(
             'Path {} does not look like a fast[aq] file'.format(path))
     return m.group(1)
+
+
+def parse_illumina_fastq_name(path):
+    """Parse Illumina fastq file name"""
+    stem = fastx_stem(path)
+    m = re.match('(.*)_S(\d+)_L(\d+)_([RI][12])_001', stem)
+    IlluminaFastq = namedtuple(
+        'IlluminaFastq', ['sample', 'sample_num', 'lane', 'read', 'path'])
+    return IlluminaFastq(sample=m.group(1),
+                         sample_num=int(m.group(2)),
+                         lane=int(m.group(3)),
+                         read=m.group(4),
+                         path=path)

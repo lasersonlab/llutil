@@ -14,6 +14,9 @@
 
 
 from click import group, option, File
+import matplotlib as mpl
+# preemptively load a matplotlib backend to get around issue with framework
+mpl.use('agg')
 import skbio
 
 @group(name='cd-hit')

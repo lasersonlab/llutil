@@ -70,17 +70,20 @@ def hybrid_min(seqs1, seqs2, na='RNA', tmin=37, tinc=1, tmax=37, sodium=1,
     return results
 
 
-def melting_temp(seqs, oligo_conc=0.25):
+def melting_temp(seqs, oligo_conc=0.25, sodium=0.05, magnesium=0):
     """Get Tm of list of seqs using UNAFold calculation
 
     seqs is a list of Bio.Seq.Seq or strings
     oligo_conc is in uM
+    ion conc is in M
+
+    For Q5, use sodium=0.1, magnesium=0.002
 
     returns [Tm]
     """
     revcomp = lambda s: str(Seq(str(s), unambiguous_dna).reverse_complement())
     rcs = [revcomp(s) for s in seqs]
-    energies = hybrid_min(seqs, rcs, na='DNA', sodium=0.05)
+    energies = hybrid_min(seqs, rcs, na='DNA', sodium=sodium, magnesium=magnesium)
     # Annu. Rev. Biophys. Biomol. Struct. 2004. 33:415–40
     # doi: 10.1146/annurev.biophys.32.110601.141800
     R = 1.9872036
